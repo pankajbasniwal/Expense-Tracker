@@ -1,0 +1,550 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <title>Monthly Expense Report</title>
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6fb;
+            color: #222;
+        }
+
+        nav {
+            background: #172554;
+            color: white;
+            padding: 20px 35px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin-left: 20px;
+        }
+
+        .container {
+            padding: 35px;
+        }
+
+        .filter {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 25px 0;
+        }
+
+        .filter input,
+        .filter button {
+            padding: 10px;
+            margin-top: 12px;
+        }
+
+        .filter button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.05);
+        }
+
+        .card h3 {
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .card h2 {
+            font-size: 27px;
+        }
+
+        .income {
+            color: #16a34a;
+        }
+
+        .expense {
+            color: #dc2626;
+        }
+
+        .balance {
+            color: #2563eb;
+        }
+
+        .section {
+            background: white;
+            padding: 25px;
+            margin-top: 30px;
+            border-radius: 12px;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 14px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background: #f8fafc;
+        }
+
+        .income-text {
+            color: #16a34a;
+            font-weight: bold;
+        }
+
+        .expense-text {
+            color: #dc2626;
+            font-weight: bold;
+        }
+
+        @media(max-width: 700px) {
+            .cards {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                padding: 18px;
+            }
+
+            nav {
+                flex-wrap: wrap;
+                gap: 15px;
+            }
+        }
+
+        .charts-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .chart-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.05);
+            min-width: 0;
+        }
+
+        .chart-card h2 {
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+
+        .chart-card canvas {
+            max-height: 320px;
+        }
+
+        @media(max-width: 700px) {
+            .charts-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+    </style>
+
+</head>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<body>
+
+    <nav>
+
+        <h2>Expense Tracker</h2>
+
+        <div>
+
+            <a href="{% url 'dashboard' %}">
+                Dashboard
+            </a>
+
+            <a href="{% url 'transaction_list' %}">
+                Transactions
+            </a>
+
+            <a href="{% url 'monthly_report' %}">
+                Reports
+            </a>
+
+        </div>
+
+    </nav>
+
+
+    <div class="container">
+
+        <h1>Monthly Expense Report</h1>
+
+        <p>Analyze your monthly financial activities.</p>
+
+
+        <!-- Month Filter -->
+
+        <div class="filter">
+
+            <form method="GET">
+
+                <label>Select Month:</label>
+
+                <br>
+
+                <input
+                    type="month"
+                    name="month"
+                    value="{{ selected_month }}"
+                    required
+                >
+
+                <button type="submit">
+                    Generate Report
+                </button>
+
+            </form>
+
+        </div>
+
+
+        <!-- Monthly Summary -->
+
+        <div class="cards">
+
+            <div class="card">
+
+                <h3>Monthly Income</h3>
+
+                <h2 class="income">
+                    ₹{{ monthly_income|floatformat:2 }}
+                </h2>
+
+            </div>
+
+
+            <div class="card">
+
+                <h3>Monthly Expenses</h3>
+
+                <h2 class="expense">
+                    ₹{{ monthly_expenses|floatformat:2 }}
+                </h2>
+
+            </div>
+
+
+            <div class="card">
+
+                <h3>Monthly Balance</h3>
+
+                <h2 class="balance">
+                    ₹{{ monthly_balance|floatformat:2 }}
+                </h2>
+
+            </div>
+
+        </div>
+
+
+        <!-- Transaction Report -->
+
+        <div class="section">
+
+            <h2>Transaction Details</h2>
+
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>Category</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                        <th>Amount</th>
+                        <th>Date</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for transaction in transactions %}
+
+                    <tr>
+
+                        <td>
+                            {{ transaction.category.name }}
+                        </td>
+
+                        <td>
+                            {{ transaction.transaction_type }}
+                        </td>
+
+                        <td>
+                            {{ transaction.description|default:"-" }}
+                        </td>
+
+                        <td>
+
+                            {% if transaction.transaction_type == 'income' %}
+
+                                <span class="income-text">
+                                    + ₹{{ transaction.amount }}
+                                </span>
+
+                            {% else %}
+
+                                <span class="expense-text">
+                                    - ₹{{ transaction.amount }}
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                        <td>
+                            {{ transaction.date }}
+                        </td>
+
+                    </tr>
+
+                    {% empty %}
+
+                    <tr>
+
+                        <td colspan="5">
+                            No transactions found for this month.
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        <!-- Charts Section -->
+
+    <div class="charts-container">
+
+        <div class="chart-card">
+
+            <h2>Category-wise Expenses</h2>
+
+            <canvas id="expensePieChart"></canvas>
+
+        </div>
+
+
+        <div class="chart-card">
+
+            <h2>Income vs Expenses</h2>
+
+            <canvas id="incomeExpenseChart"></canvas>
+
+        </div>
+
+    </div>
+
+    </div>
+
+    <!-- Send Django data safely to JavaScript -->
+
+{{ category_labels|json_script:"category-labels" }}
+
+{{ category_amounts|json_script:"category-amounts" }}
+
+{{ chart_income|json_script:"chart-income" }}
+
+{{ chart_expenses|json_script:"chart-expenses" }}
+
+
+<script>
+
+    // Get data from Django
+
+    const categoryLabels = JSON.parse(
+        document.getElementById('category-labels').textContent
+    );
+
+    const categoryAmounts = JSON.parse(
+        document.getElementById('category-amounts').textContent
+    );
+
+    const income = JSON.parse(
+        document.getElementById('chart-income').textContent
+    );
+
+    const expenses = JSON.parse(
+        document.getElementById('chart-expenses').textContent
+    );
+
+
+    // 1. Pie Chart
+
+    const pieChart = document.getElementById(
+        'expensePieChart'
+    );
+
+    new Chart(pieChart, {
+
+        type: 'doughnut',
+
+        data: {
+
+            labels: categoryLabels,
+
+            datasets: [{
+
+                label: 'Expenses',
+
+                data: categoryAmounts,
+
+                backgroundColor: [
+                    '#2563eb',
+                    '#16a34a',
+                    '#f59e0b',
+                    '#dc2626',
+                    '#8b5cf6',
+                    '#06b6d4'
+                ],
+
+                borderWidth: 2
+
+            }]
+
+        },
+
+        options: {
+
+            responsive: true,
+
+            plugins: {
+
+                legend: {
+                    position: 'bottom'
+                },
+
+                tooltip: {
+
+                    callbacks: {
+
+                        label: function(context) {
+
+                            return context.label +
+                                ': ₹' +
+                                context.parsed.toLocaleString('en-IN');
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+        }
+
+    });
+
+
+    // 2. Income vs Expenses Bar Chart
+
+    const barChart = document.getElementById(
+        'incomeExpenseChart'
+    );
+
+    new Chart(barChart, {
+
+        type: 'bar',
+
+        data: {
+
+            labels: ['Income', 'Expenses'],
+
+            datasets: [{
+
+                label: 'Amount (₹)',
+
+                data: [income, expenses],
+
+                backgroundColor: [
+                    '#16a34a',
+                    '#dc2626'
+                ],
+
+                borderRadius: 8
+
+            }]
+
+        },
+
+        options: {
+
+            responsive: true,
+
+            plugins: {
+
+                legend: {
+                    display: false
+                }
+
+            },
+
+            scales: {
+
+                y: {
+
+                    beginAtZero: true,
+
+                    ticks: {
+
+                        callback: function(value) {
+
+                            return '₹' +
+                                value.toLocaleString('en-IN');
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+        }
+
+    });
+
+</script>
+</body>
+</html>

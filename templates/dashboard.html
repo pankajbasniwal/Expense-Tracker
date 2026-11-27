@@ -1,0 +1,505 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Dashboard - Expense Tracker</title>
+
+    <link rel="stylesheet"
+          href="{% static 'css/style.css' %}">
+
+</head>
+
+<body>
+
+    <!-- Navigation Bar -->
+
+    <nav class="dashboard-nav">
+
+        <h2>💰 Expense Tracker</h2>
+
+        <div class="nav-links">
+
+            <a href="{% url 'dashboard' %}">Dashboard</a>
+
+            <a href="{% url 'transaction_list' %}">Transactions</a>
+
+            <a href="{% url 'add_transaction' %}">Add Transaction</a>
+
+            <a href="{% url 'monthly_report' %}">Reports</a>
+
+            <a href="{% url 'budget_dashboard' %}">Budgets</a>
+
+            <form method="POST"
+                  action="{% url 'logout' %}"
+                  class="logout-form">
+
+                {% csrf_token %}
+
+                <button type="submit" class="logout-btn">
+                    Logout
+                </button>
+
+            </form>
+
+        </div>
+
+    </nav>
+
+
+    <main class="dashboard-container">
+
+        <!-- Welcome Section -->
+
+        <section class="dashboard-welcome">
+
+            <div>
+                <h1>Welcome back, {{ request.user.username }}! 👋</h1>
+
+                <p>Here's an overview of your personal finances.</p>
+            </div>
+
+            <a href="{% url 'add_transaction' %}"
+               class="primary-btn">
+                + Add Transaction
+            </a>
+
+        </section>
+
+
+        <!-- Financial Summary -->
+
+        <section class="summary-grid">
+
+
+        <!-- Monthly Comparison Chart -->
+
+        <div class="chart-card">
+
+            <h3>Monthly Income vs Expenses</h3>
+
+            <canvas id="monthlyComparisonChart"></canvas>
+
+        </div>
+
+            <!-- Balance Card -->
+
+            <div class="summary-card balance-card">
+
+                <div class="summary-icon">💰</div>
+
+                <p>Total Balance</p>
+
+                <h2>
+                    ₹{{ balance|floatformat:2 }}
+                </h2>
+
+                <span>Available Balance</span>
+
+            </div>
+
+
+            <!-- Income Card -->
+
+            <div class="summary-card income-card">
+
+                <div class="summary-icon">📈</div>
+
+                <p>Total Income</p>
+
+                <h2>
+                    ₹{{ total_income|floatformat:2 }}
+                </h2>
+
+                <span>Money Received</span>
+
+            </div>
+
+
+            <!-- Expense Card -->
+
+            <div class="summary-card expense-card">
+
+                <div class="summary-icon">📉</div>
+
+                <p>Total Expenses</p>
+
+                <h2>
+                    ₹{{ total_expenses|floatformat:2 }}
+                </h2>
+
+                <span>Money Spent</span>
+
+            </div>
+
+        </section>
+
+
+        <!-- Quick Actions -->
+
+        <section class="quick-actions">
+
+            <h2>Quick Actions</h2>
+
+            <div class="action-grid">
+
+                <a href="{% url 'add_transaction' %}"
+                   class="action-card">
+                    <span>➕</span>
+                    <h3>Add Transaction</h3>
+                    <p>Record your income or expenses</p>
+                </a>
+
+                <a href="{% url 'transaction_list' %}"
+                   class="action-card">
+                    <span>📋</span>
+                    <h3>Transactions</h3>
+                    <p>View all your transactions</p>
+                </a>
+
+                <a href="{% url 'monthly_report' %}"
+                   class="action-card">
+                    <span>📊</span>
+                    <h3>Monthly Reports</h3>
+                    <p>Analyze your monthly spending</p>
+                </a>
+
+                <a href="{% url 'budget_dashboard' %}"
+                   class="action-card">
+                    <span>🎯</span>
+                    <h3>My Budgets</h3>
+                    <p>Track your spending limits</p>
+                </a>
+
+                <a href="{% url 'add_budget' %}"
+                   class="action-card">
+                    <span>💳</span>
+                    <h3>Create Budget</h3>
+                    <p>Set a new spending limit</p>
+                </a>
+
+            </div>
+
+        </section>
+
+
+        <!-- Recent Transactions -->
+
+ 
+<!-- Recent Transactions -->
+
+
+<!-- Expense Charts -->
+
+<div class="chart-section">
+
+    <h2>Financial Analytics</h2>
+
+    <div class="chart-grid">
+
+        <!-- Income vs Expenses -->
+
+        <div class="chart-card">
+
+            <h3>Income vs Expenses</h3>
+
+            <canvas id="incomeExpenseChart"></canvas>
+
+        </div>
+
+
+        <!-- Category-wise Expenses -->
+
+        <div class="chart-card">
+
+            <h3>Category-wise Expenses</h3>
+
+            <canvas id="categoryExpenseChart"></canvas>
+
+        </div>
+
+    </div>
+
+</div>
+
+<div class="recent-section">
+
+    <div class="section-heading">
+        <h2>Recent Transactions</h2>
+
+        <a href="{% url 'transaction_list' %}">
+            View All →
+        </a>
+    </div>
+
+    <div class="table-wrapper">
+
+        <table class="dashboard-table">
+
+            <thead>
+                <tr>
+                    <th>Category</th>
+                    <th>Type</th>
+                    <th>Amount</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for transaction in recent_transactions %}
+
+                <tr>
+
+                    <td>{{ transaction.category.name }}</td>
+
+                    <td>
+                        {% if transaction.transaction_type == 'income' %}
+                            <span class="type-badge income-badge">
+                                Income
+                            </span>
+                        {% else %}
+                            <span class="type-badge expense-badge">
+                                Expense
+                            </span>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {% if transaction.transaction_type == 'income' %}
+                            <span class="income-amount">
+                                + ₹{{ transaction.amount }}
+                            </span>
+                        {% else %}
+                            <span class="expense-amount">
+                                - ₹{{ transaction.amount }}
+                            </span>
+                        {% endif %}
+                    </td>
+
+                    <td>{{ transaction.date }}</td>
+
+                </tr>
+
+                {% empty %}
+
+                <tr>
+                    <td colspan="4" class="empty-message">
+                        No transactions available yet.
+                    </td>
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+<footer class="dashboard-footer">
+    © 2026 Personal Expense Tracker | Manage Your Money Smartly
+</footer>
+
+
+        <!-- Footer -->
+
+        <footer class="dashboard-footer">
+
+            <p>© 2026 Personal Expense Tracker. Manage your money wisely.</p>
+
+        </footer>
+
+    </main>
+
+
+<!-- Chart.js Library -->
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Django Chart Data -->
+
+{{ income_expense_data|json_script:"income-expense-data" }}
+
+{{ category_labels|json_script:"category-labels" }}
+
+{{ category_values|json_script:"category-values" }}
+
+<script>
+
+    // Get data from Django
+
+    const incomeExpenseData = JSON.parse(
+        document.getElementById("income-expense-data").textContent
+    );
+
+    const categoryLabels = JSON.parse(
+        document.getElementById("category-labels").textContent
+    );
+
+    const categoryValues = JSON.parse(
+        document.getElementById("category-values").textContent
+    );
+
+
+    // Income vs Expenses Doughnut Chart
+
+    new Chart(
+        document.getElementById("incomeExpenseChart"),
+        {
+            type: "doughnut",
+
+            data: {
+                labels: ["Income", "Expenses"],
+
+                datasets: [{
+                    data: incomeExpenseData,
+                    backgroundColor: [
+                        "#16a34a",
+                        "#dc2626"
+                    ],
+                    borderWidth: 0
+                }]
+            },
+
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+
+                plugins: {
+                    legend: {
+                        position: "bottom"
+                    }
+                }
+            }
+        }
+    );
+
+
+    // Category-wise Expenses Bar Chart
+
+    new Chart(
+        document.getElementById("categoryExpenseChart"),
+        {
+            type: "bar",
+
+            data: {
+                labels: categoryLabels,
+
+                datasets: [{
+                    label: "Amount Spent (₹)",
+
+                    data: categoryValues,
+
+                    backgroundColor: "#2563eb",
+
+                    borderRadius: 7
+                }]
+            },
+
+            options: {
+                responsive: true,
+
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        }
+    );
+
+
+// Get monthly data
+
+const monthlyLabels = JSON.parse(
+    document.getElementById("monthly-labels").textContent
+);
+
+const monthlyIncome = JSON.parse(
+    document.getElementById("monthly-income").textContent
+);
+
+const monthlyExpenses = JSON.parse(
+    document.getElementById("monthly-expenses").textContent
+);
+
+
+// Monthly Income vs Expenses Chart
+
+new Chart(
+    document.getElementById("monthlyComparisonChart"),
+    {
+        type: "bar",
+
+        data: {
+            labels: monthlyLabels,
+
+            datasets: [
+
+                {
+                    label: "Income",
+
+                    data: monthlyIncome,
+
+                    backgroundColor: "#16a34a",
+
+                    borderRadius: 6
+                },
+
+                {
+                    label: "Expenses",
+
+                    data: monthlyExpenses,
+
+                    backgroundColor: "#dc2626",
+
+                    borderRadius: 6
+                }
+
+            ]
+        },
+
+        options: {
+
+            responsive: true,
+
+            scales: {
+                y: {
+                    beginAtZero: true,
+
+                    title: {
+                        display: true,
+                        text: "Amount (₹)"
+                    }
+                }
+            },
+
+            plugins: {
+                legend: {
+                    position: "bottom"
+                }
+            }
+        }
+    }
+);
+
+
+</script>
+
+</body>
+</html>

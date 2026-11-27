@@ -1,0 +1,30 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Transaction</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+
+<body>
+
+    <h1>Edit Transaction</h1>
+
+    <form method="POST">
+
+        {% csrf_token %}
+
+        {{ form.as_p }}
+
+        <button type="submit">
+            Update Transaction
+        </button>
+
+    </form>
+
+    <a href="{% url 'transaction_list' %}">
+        Back to Transactions
+    </a>
+
+</body>
+</html>

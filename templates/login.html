@@ -1,0 +1,42 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <title>Login - Expense Tracker</title>
+</head>
+
+<body>
+
+    <h1>Login to Your Account</h1>
+
+    <form method="POST">
+
+        {% csrf_token %}
+
+        {{ form.as_p }}
+
+        <button type="submit">
+            Login
+        </button>
+
+    </form>
+
+    <form method="POST" action="{% url 'logout' %}">
+
+    {% csrf_token %}
+
+    <button type="submit">
+        Logout
+    </button>
+
+</form>
+    <p>
+        Don't have an account?
+        <a href="{% url 'register' %}">
+            Register
+        </a>
+    </p>
+
+</body>
+</html>

@@ -1,0 +1,397 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Budget Dashboard - Expense Tracker</title>
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6fb;
+            color: #222;
+        }
+
+        /* Navigation */
+
+        nav {
+            background: #172554;
+            color: white;
+            padding: 20px 35px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin-left: 20px;
+        }
+
+        nav a:hover {
+            color: #93c5fd;
+        }
+
+        /* Main Container */
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            padding: 35px;
+        }
+
+        .heading {
+            margin-bottom: 25px;
+        }
+
+        .heading h1 {
+            color: #172554;
+            margin-bottom: 10px;
+        }
+
+        .heading p {
+            color: #666;
+        }
+
+        /* Filter Section */
+
+        .filter {
+            background: white;
+            padding: 25px;
+            margin-bottom: 25px;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.05);
+        }
+
+        input {
+            padding: 12px;
+            margin-top: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+        }
+
+        button {
+            padding: 12px 18px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        /* Add Budget Button */
+
+        .add-btn {
+            display: inline-block;
+            background: #2563eb;
+            color: white;
+            padding: 13px 20px;
+            text-decoration: none;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+
+        .add-btn:hover {
+            background: #1d4ed8;
+        }
+
+        /* Budget Cards */
+
+        .budget-card {
+            background: white;
+            padding: 25px;
+            margin-top: 20px;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.05);
+        }
+
+        .budget-card h2 {
+            color: #172554;
+            margin-bottom: 18px;
+        }
+
+        .budget-card p {
+            margin: 12px 0;
+        }
+
+        /* Progress Bar */
+
+        .progress {
+            background: #e5e7eb;
+            height: 14px;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 18px 0;
+        }
+
+        .progress-bar {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.4s ease;
+        }
+
+        .safe {
+            background: #16a34a;
+        }
+
+        .warning {
+            background: #f59e0b;
+        }
+
+        .exceeded {
+            background: #dc2626;
+        }
+
+        /* Status Messages */
+
+        .status {
+            font-weight: bold;
+            margin-top: 15px;
+        }
+
+        .safe-text {
+            color: #16a34a;
+        }
+
+        .warning-text {
+            color: #d97706;
+        }
+
+        .exceeded-text {
+            color: #dc2626;
+        }
+
+        .percentage {
+            font-weight: bold;
+            color: #172554;
+        }
+
+        .empty {
+            background: white;
+            padding: 35px;
+            margin-top: 25px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        /* Mobile Responsive */
+
+        @media(max-width: 700px) {
+
+            .container {
+                padding: 18px;
+            }
+
+            nav {
+                padding: 18px;
+            }
+
+            nav div {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 12px;
+            }
+
+            nav a {
+                margin-left: 0;
+            }
+
+            .filter,
+            .budget-card {
+                padding: 20px;
+            }
+
+            input {
+                width: 100%;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <!-- Navigation -->
+
+    <nav>
+
+        <h2>Expense Tracker</h2>
+
+        <div>
+
+            <a href="{% url 'dashboard' %}">
+                Dashboard
+            </a>
+
+            <a href="{% url 'transaction_list' %}">
+                Transactions
+            </a>
+
+            <a href="{% url 'monthly_report' %}">
+                Reports
+            </a>
+
+            <a href="{% url 'budget_dashboard' %}">
+                Budgets
+            </a>
+
+        </div>
+
+    </nav>
+
+
+    <!-- Main Content -->
+
+    <div class="container">
+
+        <div class="heading">
+
+            <h1>My Budget Dashboard</h1>
+
+            <p>Track your monthly spending limits and manage your money.</p>
+
+        </div>
+
+
+        <!-- Month Filter -->
+
+        <div class="filter">
+
+            <form method="GET">
+
+                <label for="month">
+                    <strong>Select Month:</strong>
+                </label>
+
+                <br>
+
+                <input
+                    type="month"
+                    id="month"
+                    name="month"
+                    value="{{ selected_month }}"
+                    required
+                >
+
+                <button type="submit">
+                    View Budget
+                </button>
+
+            </form>
+
+        </div>
+
+
+        <!-- Create Budget Button -->
+
+        <a href="{% url 'add_budget' %}" class="add-btn">
+            + Create New Budget
+        </a>
+
+
+        <!-- Budget Cards -->
+
+        {% for item in budget_data %}
+
+        <div class="budget-card">
+
+            <h2>{{ item.category }}</h2>
+
+            <p>
+                <strong>Spent:</strong>
+                ₹{{ item.spent|floatformat:2 }}
+            </p>
+
+            <p>
+                <strong>Budget Limit:</strong>
+                ₹{{ item.limit|floatformat:2 }}
+            </p>
+
+            <p>
+                <strong>Remaining:</strong>
+                ₹{{ item.remaining|floatformat:2 }}
+            </p>
+
+
+            <!-- Progress Bar -->
+            <div class="progress">
+
+                <progress
+                    class="budget-progress {{ item.status }}"
+                    value="{{ item.percentage }}"
+                    max="100">
+                </progress>
+
+            </div>
+
+            <!-- Budget Status -->
+
+            {% if item.status == 'safe' %}
+
+                <p class="status safe-text">
+                    ✓ Budget is under control.
+                </p>
+
+            {% elif item.status == 'warning' %}
+
+                <p class="status warning-text">
+                    ⚠ Warning! You have used at least 80% of your budget.
+                </p>
+
+            {% elif item.status == 'exceeded' %}
+
+                <p class="status exceeded-text">
+                    ✕ Alert! Your budget has been exceeded.
+                </p>
+
+            {% endif %}
+
+
+            <p class="percentage">
+                {{ item.percentage|floatformat:1 }}% Used
+            </p>
+
+        </div>
+
+        {% empty %}
+
+        <div class="empty">
+
+            <h2>No Budgets Found</h2>
+
+            <p>You haven't created any budgets for this month.</p>
+
+            <br>
+
+            <a href="{% url 'add_budget' %}" class="add-btn">
+                Create Your First Budget
+            </a>
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+</body>
+
+</html>
